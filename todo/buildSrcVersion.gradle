@@ -1,0 +1,77 @@
+import com.fanda.ProjectVersion
+import com.fanda.ReleaseVersionTask
+
+
+/*
+*   通过Gradle 约定的 buildSrc 目录来放置脚本代码，然后在脚本文件中通过 import 的方式来引用，这是最佳实践
+*   该目录下的代码会被自动编译，并且被加入到 Gradle 构建脚本的 classpath 中。
+* */
+
+// 通过读取本地属性文件的方式来设置版本
+// 调用 project 的 file 方法，它会创建一个相对于项目目录的File实例
+ext.versionFile = file('version.properties')
+// task 配置 ，是在配置阶段生命周期执行的，注意这里没有使用 doFirst 或 doLast
+task loadVersion {
+    project.version = readVersion()
+}
+ProjectVersion readVersion() {
+    logger.quiet 'Reading the version file.!!!'
+    if (!versionFile.exists()) {
+        throw new GradleException("Required version file does not exist: $versionFile.canonicalPath")
+    }
+    Properties versionProps = new Properties()
+    versionFile.withInputStream { stream ->
+      versionProps.load(stream)
+    }
+    // 最后一行表示返回值
+    new ProjectVersion(versionProps.major.toInteger(), versionProps.minor.toInteger(), versionProps.release.toBoolean())
+}
+
+// 创建 ReleaseVersionTask 类型的 task
+task makeReleaseVersion(type: ReleaseVersionTask) {
+    //通过它的属性来设置输入和输出
+    release = version.release
+    destFile = versionFile
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

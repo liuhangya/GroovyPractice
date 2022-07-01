@@ -1,0 +1,214 @@
+class ProjectVersion {
+    Integer major
+    Integer minor
+    Boolean release
+
+    ProjectVersion(Integer major, Integer minor) {
+        this.major = major
+        this.minor = minor
+        this.release = Boolean.FALSE
+    }
+
+    ProjectVersion(Integer major, Integer minor, Boolean release) {
+        this(major, minor)
+        this.release = release
+    }
+
+    @Override
+    String toString() {
+        return "$major.$minor${release ? '' : '-SNAPSHOT'}"
+    }
+}
+
+// 通过读取本地属性文件的方式来设置版本
+// 调用 project 的 file 方法，它会创建一个相对于项目目录的File实例
+ext.versionFile = file('version.properties')
+// task 配置 ，是在配置阶段生命周期执行的，注意这里没有使用 doFirst 或 doLast
+task loadVersion {
+    project.version = readVersion()
+}
+
+ProjectVersion readVersion() {
+    logger.quiet 'Reading the version file.'
+    if (!versionFile.exists()) {
+        throw new GradleException("Required version file does not exist: $versionFile.canonicalPath")
+    }
+    Properties versionProps = new Properties()
+    versionFile.withInputStream { stream ->
+        versionProps.load(stream)
+    }
+    // 最后一行表示返回值
+    new ProjectVersion(versionProps.major.toInteger(), versionProps.minor.toInteger(), versionProps.release.toBoolean())
+}
+
+// 自定义 Task 实现 propertiesVersion.gradle 的 makeReleaseVersion 任务的功能
+class ReleaseVersionTask extends DefaultTask {
+    // release 和 destFile 配置属性将暴露给构建脚本单独设置
+    // 通过注解来表示输入数据
+    @Input
+    Boolean release
+    // 通过注解来表示输出数据
+    @OutputFile
+    File destFile
+
+    ReleaseVersionTask() {
+        // 在构造器中设置分组和描述
+        group('versioning')
+        description('Makes project a release version.')
+    }
+
+    // 通过注解来定义 action
+    @TaskAction
+    void start() {
+        project.version.release = release
+        ant.propertyfile(file: destFile) {
+            entry(key: 'release', type: 'string', operation: '=', value: 'true')
+        }
+    }
+}
+
+// 使用自定义的 ReleaseVersionTask 任务
+
+// 创建 ReleaseVersionTask 类型的 task
+task makeReleaseVersion(type: ReleaseVersionTask) {
+    //通过它的属性来设置输入和输出
+    release = version.release
+    destFile = versionFile
+}
+
+// 创建一个  Zip 类型的 task ，依赖于 makeReleaseVersion 任务
+task createDistribution(type: Zip, dependsOn: makeReleaseVersion) {
+    // 更改 zip 包的输出目录
+    destinationDirectory = new File("$buildDir/zip")
+    // 把所有源文件都放到 Zip 文件的 src 目录下
+    from(sourceSets*.allSource) {
+        into 'src'
+    }
+//    logger.quiet("根目录为：$rootDir")
+//    logger.quiet("版本文件为：$versionFile.name")
+    // 为 zip 文件添加版本文件，暂时不理解使用
+    from(rootDir) {
+        include versionFile.name
+    }
+
+}
+
+task backupReleaseDistribution(type: Copy) {
+    // 将 Zip 任务的输出文件复制到 build/backup 目录
+    from createDistribution.outputs.files
+    into "$buildDir/backup"
+}
+
+task release(dependsOn: backupReleaseDistribution) {
+    doLast {
+        logger.quiet 'Releasing the project...'
+    }
+}
+
+/*
+
+// 增加主版本号，可以通过 key:value 的方式
+task incrementMajorVersion(group: 'versioning', description:'Increments project major version.') {
+    doLast {
+        String currentVersion = version.toString()
+        ++version.major
+        String newVersion = version.toString()
+        logger.info("Incrementing major project version: $currentVersion -> $newVersion")
+        ant.propertyfile(file: versionFile) {
+            entry(key: 'major', type: 'int', operation: '+', value: 1)
+        }
+    }
+}
+
+// 增加次版本号，可以通过 key:value 的方式
+task incrementMinorVersion(group: 'versioning', description:'Increments project minor version.') {
+    doLast {
+        String currentVersion = version.toString()
+        ++version.minor
+        String newVersion = version.toString()
+        logger.info("Incrementing minor project version: $currentVersion -> $newVersion")
+        ant.propertyfile(file: versionFile) {
+            entry(key: 'minor', type: 'int', operation: '+', value: 1)
+        }
+    }
+}
+
+*/
+
+// 上面的 incrementMajorVersion 和 incrementMinorVersion 任务其实是非常类似的，有大概重复代码，可以通过规则命名模式来进行优化处理
+// 以下代码等价于 上面的 incrementMajorVersion 和 incrementMinorVersion 任务
+// 第一个参数为规则的描述，第二个参数声明了要执行的闭包来应用规则
+// 以下规则固定分到 Rules 组下：如下：
+/*Rules
+-----
+        Pattern: clean<TaskName>: Cleans the output files of a task.
+        Pattern: build<ConfigurationName>: Assembles the artifacts of a configuration.
+        Pattern: increment<Classifier>Version: Increment the project version classifier.*/
+
+tasks.addRule("Pattern: increment<Classifier>Version: Increment the project version classifier.") { String taskName ->
+    // 根据约定的规则来查询 task 名称
+    if (taskName.startsWith('increment') && taskName.endsWith('Version')) {
+        // 给符合规则名称的 task 创建一个真正的 task ，并添加一个 doLast 来执行相关逻辑
+        task(taskName){
+            doLast {
+                // 通过 - 运算符可以去除字符串相关内容，只留下中间命名部分
+                String classifier = (taskName - 'increment' - 'Version').toLowerCase()
+                String currentVersion = version.toString()
+                switch (classifier) {
+                    case 'major':
+                        ++version.major
+                        break
+                    case 'minor':
+                        ++version.minor
+                        break
+                }
+                // 修改属性文件
+                String newVersion = version.toString()
+                logger.info("Incrementing minor project version: $currentVersion -> $newVersion")
+                ant.propertyfile(file: versionFile) {
+                    entry(key: classifier, type: 'int', operation: '+', value: 1)
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

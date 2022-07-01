@@ -1,0 +1,68 @@
+class ProjectVersion {
+    Integer major
+    Integer minor
+    Boolean release
+
+    ProjectVersion(Integer major, Integer minor) {
+        this.major = major
+        this.minor = minor
+        this.release = Boolean.FALSE
+    }
+
+    ProjectVersion(Integer major, Integer minor, Boolean release) {
+        this(major, minor)
+        this.release = release
+    }
+
+    @Override
+    String toString() {
+        return "$major.$minor${release ? '' : '-SNAPSHOT'}"
+    }
+}
+
+// 通过读取本地属性文件的方式来设置版本
+// 调用 project 的 file 方法，它会创建一个相对于项目目录的File实例
+ext.versionFile =  file('version.properties')
+// task 配置 ，是在配置阶段生命周期执行的，注意这里没有使用 doFirst 或 doLast
+task loadVersion {
+    project.version = readVersion()
+}
+
+ProjectVersion readVersion(){
+    logger.quiet 'Reading the version file.'
+    if (!versionFile.exists()) {
+        throw new GradleException("Required version file does not exist: $versionFile.canonicalPath")
+    }
+    Properties versionProps = new Properties()
+    versionFile.withInputStream { stream ->
+        versionProps.load(stream)
+    }
+    // 最后一行表示返回值
+    new ProjectVersion(versionProps.major.toInteger(),versionProps.minor.toInteger(),versionProps.release.toBoolean())
+}
+
+// 执行该任务，会先执行 loadVersion，因为 loadVersion 是在配置阶段生命周期执行的，先于执行阶段
+task printVersion5 {
+    doLast {
+        logger.quiet "Version: $version"
+    }
+}
+
+// 默认情况下，如果没配置 inputs/outputs ，则会提示 Task has not declared any outputs despite executing actions.
+// 默认会重复执行，其实在不改变 release 的情况下，该任务是不应该重复执行的
+
+// 执行过一次之后，会跳过该任务，提示 Skipping task ':todo:makeReleaseVersion' as it is up-to-date.
+// 命令如下： gradle makeReleaseVersion -is
+task makeReleaseVersion(group: 'versioning', description: 'Makes project a release version.') {
+    // 在配置阶段声明 inputs/outputs
+    inputs.property('release',version.release)
+    outputs.file(versionFile)
+    // action ，执行阶段
+    doLast {
+        version.release = true
+        // 利用 ant 的方式来修改属性文件
+        ant.propertyfile(file: versionFile) {
+            entry(key: 'release', type: 'string', operation: '=', value: 'true')
+        }
+    }
+}

@@ -1,0 +1,32 @@
+<!--name:用于指定project元素的名称
+default:用于指定project默认执行时  所执行的target的名称
+basedir:用于指定基路径的位置, . 表示当前目录-->
+<project name="Test" default="dist" basedir=".">
+    <!--设置全局属性，比如说源代码、输出和发布目录-->
+    <property name="src" location="src" />
+    <property name="build" location="build" />
+    <property name="dist" location="dist" />
+    <property name="version" value="1.0" />
+
+    <target name="init" description="第一步，创建 build 目录">
+        <mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile" depends="init" description="第二步，编译源代码，依赖 init">
+        <!--把 src 目录的源码编译到 build 目录 ，依赖一个三方 jar 包-->
+        <javac srcdir="${src}" destdir="${build}" classpath="lib/commons-lang3-3.1.jar" includeantruntime="false"/>
+    </target>
+
+    <target name="dist" depends="compile" description="第三步，创建发布目录并生成jar包，依赖 compile">
+        <!--创建发布目录-->
+        <mkdir dir="${dist}"/>
+        <!--根据build目录生成jar包-->
+        <jar jarfile="${dist}/test-${version}.jar" basedir="${build}"/>
+    </target>
+
+    <target name="clean" description="独立任务，用于清理 build 和 dist 目录">
+        <delete dir="${build}"/>
+        <delete dir="${dist}"/>
+    </target>
+
+</project>

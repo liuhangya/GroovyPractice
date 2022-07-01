@@ -1,0 +1,11 @@
+//定义了一个获取 AndroidManifests.xml versionName 的函数
+//def getVersionName() {
+//    def xmlFile = project.file("/src/main/AndroidManifest.xml")
+//    def targetFile = new File('G:\\fanda_all_projects\\gradle_projects\\groovy_projects\\GroovyPractice\\app\\src\\main\\AndroidManifest.xml')
+//    println(targetFile.absolutePath)
+//    def rootManifest = new XmlSlurper().parse(targetFile)
+//    println(rootManifest.toString())
+////    return rootManifest.application['@android:versionName']
+//}
+//getVersionName()
+//println 'test.........'

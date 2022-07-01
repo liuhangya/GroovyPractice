@@ -1,0 +1,49 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+dependencyResolutionManagement {
+//    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "GroovyPractice"
+include ':app'
+include ':groovy'
+
+//在 settings.gradle 中，则输出"In settings,gradle id is"
+//println "In settings.gradle id is " + gradle.hashCode()
+//println "Home Dir:" + gradle.gradleHomeDir
+//println "User Home Dir:" + gradle.gradleUserHomeDir
+//println "Parent: " + gradle.parent
+
+// 给 Gradle 对象设置一些外置属性，这样全局的脚本都能访问该属性了，因为 Gradle 是全局唯一的
+def initGradleExtProperties() {
+    // 属性值从 gradle.properties 获取
+    Properties properties = new Properties()
+    File propertyFile = new File("${rootDir.getAbsolutePath()}/gradle.properties")
+    properties.load(propertyFile.newDataInputStream())
+    //gradle 就是 Gradle 对象。它默认是 Settings 和 Project 的成员变量。
+    // 在第一次定义该属性的时候需要通过 ext 前缀来标示它是一个额外的属性
+    gradle.ext.api = properties.getProperty('kotlin.code.style')
+    // 注意，settings 脚本内没有 project 对象，这里会报错，不能通过这种方式获取属性
+//    gradle.ext.customProp =project.property('customProp')
+    //再次存取 api 的时候，就不需要 ext 前缀了
+    println gradle.api
+}
+
+initGradleExtProperties()
+
+include ':todo'
+include ':todoweb'
+include ':unit4'
+
+rootProject.children.each {
+//    println("每个子项目的信息如下：$it")
+}

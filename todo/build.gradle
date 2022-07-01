@@ -1,0 +1,188 @@
+import com.fanda.MyTestListener
+
+//plugins {
+//    id 'java-library'
+//}
+apply plugin: 'java'
+apply plugin: 'groovy'
+// 引入其他 gradle 文件
+//apply from: "${projectDir.absolutePath}/graphVersion.gradle"
+// 同一级目录下的其他脚本文件，可以直接这样引入
+apply from: "graphVersion.gradle"
+
+// 中文乱码问题
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+
+// 配置 java 相关内容
+java {
+    // 配置打包后的 jar 的版本名称
+//    version = 0.1
+    // 源代码兼容性配置，目标是 1.8
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    // 配置通过 jar 命令来运行jar包 java -jar build/libs/todo-0.1.jar
+    jar {
+        manifest {
+            attributes 'Main-Class': 'com.fanda.todo.ToDoApp'
+        }
+    }
+
+    // 配置输出目录为 out ，其实可以指定任意路径
+//    buildDir = 'out'
+}
+
+// 配置源代码目录是 src ，而不是 src\main\java
+// 配置源测试代码目录是 test ，而不是 test\main\java
+/* sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+    test {
+         java {
+            srcDirs = ['test']
+        }
+    }
+} */
+
+// 配置仓库，至少一个，这里配置了 mavenCentral
+repositories {
+    mavenCentral()
+}
+
+// 配置依赖声明
+dependencies {
+    // implementation 'org.apache.commons:commons-lang3:3.5'
+
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
+    implementation localGroovy()
+    implementation gradleApi()
+
+    testImplementation('org.hamcrest:hamcrest:2.2')
+    // 单元测试依赖库，注意从11版本开始，内部不再包含 hamcrest ，所以要单独依赖，不然会报错（也可以降低版本，比如用 4.10）
+    testImplementation('junit:junit:4.13.2')
+}
+
+// 添加包装器任务
+task wrapper(type: Wrapper) {
+    // gradle 版本，还可以设置很多其他选项
+    gradleVersion('7.3.3')
+}
+
+/*
+
+// 定义一个 Task ，打印当前项目的版本
+version = '0.1-SNAPSHOT'
+// 给 task 设置分组和描述，在运行 gradle tasks 命令时，可以看到该信息（最好给任务都指定分组和描述）
+task printVersion(group: 'version',description: '版本打印') {
+    doLast {
+//        println "version: $version"
+        // 通过 logger 属性来打印输出
+        logger.quiet("version: $version")
+    }
+}
+*/
+
+
+// 自定义 task ，有多个 action ，这里的输出顺序为： ccc aaa bbb ddd
+task printVersion2 {
+    doFirst {
+        println "doFirst aaa"
+    }
+    doLast {
+        println "doLast bbb"
+    }
+}
+// 这种方式可以动态给 Task 添加 action ，比如给内置的 compileJava 添加一个 doFirst 来检查项目中至少包含一个Java源文件
+printVersion2.doFirst {
+    println "doFirst ccc"
+}
+printVersion2.doLast {
+    println "doFirst ddd"
+}
+
+// 定义 task 依赖
+task first {
+    doLast {
+        logger.quiet('first')
+    }
+}
+
+task second {
+    doLast {
+        logger.quiet('second')
+    }
+}
+
+// 依赖多个 task，任务的执行顺序不是根据这里的依赖顺序来的，是根据task 的输入和输出规范自动确定的(gradle 来确定)
+// 所以可以支持依赖的任务并行执行，极大节约构建执行时间，这里只保证 printTest 在 second 和 first 之后执行
+task printTest(dependsOn: [second, first]) {
+    doLast {
+        logger.quiet("version: $version")
+    }
+}
+
+task third {
+    doLast {
+        logger.quiet('third')
+    }
+}
+
+// 通过字符串名称或任务对象都可以
+//third.dependsOn('printTest')
+//third.dependsOn(printTest)
+
+task fourth {
+    doLast {
+        logger.quiet('fourth')
+    }
+}
+
+// 终结器 task ，执行完 fourth 之后，会紧着接执行后面的终结器 task ，这里是 third
+//fourth.finalizedBy third
+// 终结器 task ，执行完 fourth 之后，会紧着接执行后面的终结器 task ，终结器 task 的执行顺序由 gradle 自动决定
+fourth.finalizedBy([first, second, third])
+
+// 测试套件执行后会回调
+test.afterSuite { TestDescriptor suite, TestResult result ->
+    if (!suite.parent && result.getTestCount() > 0) {
+        def time = result.getEndTime() - result.getStartTime()
+        // 测试套件耗时：1333
+        println("测试套件耗时：$time")
+    }
+}
+
+// 测试类执行后会回调
+test.afterTest { TestDescriptor suite, TestResult result ->
+    if (result.getTestCount() > 0) {
+        def time = result.getEndTime() - result.getStartTime()
+        // 测试类耗时：5
+        println("测试类耗时：$time")
+    }
+}
+
+// 另外一种添加监听的方式，这种方式可以进行代码复用(共享)，MyTestListener 放在 buildSrc 目录，通过导包使用
+test.addTestListener(new MyTestListener())
+
+task printGradlePropertyContent {
+    doLast {
+        // 可直接通过 project 来获取属性
+        println(project.property("customProp"))
+    }
+}
+
+
+
+
+
+
+
+
+
+
+

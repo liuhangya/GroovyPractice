@@ -1,0 +1,692 @@
+项目适配用的是 AutoSize ，但是单位和的是副单位 mm，在 studio 预览布局不正常，需要自定义模拟器，重点是模拟器的尺寸大小设置，
+如果项目配置的是 667 375 ，则模拟器也必须设置为这个尺寸，大小为宽高分别平方再相加，然后再开方，最后除以 25.4 ，保留两位数的数值。
+预览的时候选中我们自定义的模拟器即可。
+
+android studio 登录github账户报错 invalid authentication data connection reset
+
+解决办法： 在添加github账户这里一定要在 Server 里面加 https://
+
+codeglance 插件不起作用 ，可以在 setting 里面 搜索 codeglance 把 disable 选项的勾去掉
+
+问题：
+
+No such property: variantConfiguration for class: com.android.build.gradle.internal.variant.ApplicationVariantData
+
+解决： gradle 目录下的 properties 文件的 distributionUrl 地址改成低版本的，然后工程项目下的build 文件 的 gradle 引用 版本降低
+
+android studio 日志乱码：使用AS内自带的全局搜索功能，点击这个 “放大镜” 或 “双击Shift” 打开这个对话框，并在搜索框内输入 Edit Custom VM Options，
+点击第一个选项打开一个文件 ，并添加一行代码	： -Dfile.encoding=UTF-8	，最后重新编译就行了。
+
+
+夜神模拟器：
+
+1. 将安装目录的bin 路径放到系统变量 Path 中 ，类似 D:\Program Files\Nox\bin
+2. 将Android SDK 的 adb 改名成 nox_adb 再替换掉上面 bin 路径下的 nox_adb
+3. 打开 studio 就能看到对应的模拟器了。
+
+recyclerview 相关问题：
+
+1. item 复用导致数据混乱，比如进行了属性动画之后，其他的 item 也变成了动画之后的样子，可以使用：
+
+	普通adapter中：viewHolder.setIsRecyclable(false);那么这个Item的onViewRecycled将永远不会调用。
+
+	万能adapter中：在convert()中的viewHolder.setIsRecyclable(false);那么这个Item的onViewRecycled将永远不会调用。
+
+2. item 进行动画后，超出父布局的部门被裁剪掉了，可以在 recyclerview 和它的父布局加上     android:clipChildren="false"
+
+
+问题： 在 Android studio 上的 terminal 上使用 gradle ，需要配置 java 环境，然后加上类似如下的 GRADLE_HOME 环境：
+
+C:\Users\fanda.zeng\.gradle\wrapper\dists\gradle-4.8-all\41c9mvq2w0645xx6nsenaerjl\gradle-4.8
+
+可以在 setting -> gradle -> 查看 gradle 的路径 ，注意用到的版本，我这里用到的是4.8
+
+
+问题： kotlin 中 ButterKnife 没生效，原因之一是 没用 kapt 插件和依赖
+
+问题： 竖屏切换到横屏时，为什么会先切换到竖屏
+
+问题： kotlin 文件中用不了 ButterKnife 的事件注解，不知道为什么？
+
+问题： 约束文件虽然加上了约束，但是在 recyclerview 中 宽或高设置了 match_parent 还是会充满全屏，约束不生效，但是用 0dp 可以。
+
+bugly 集成问题： TinkerID is not set 错误 ，
+
+方案：
+
+    buildConfig {
+        keepDexApply = false
+        tinkerId = BUILD_ENVIRONMENT + "-" + BUILD_versionCode + "." + BUILD_versionName
+        applyMapping = "${buildDir}\\apk\\${newFileNamePrefix}-mapping.txt"
+        //  可选，设置mapping文件，建议保持旧apk的proguard混淆方式
+        applyResourceMapping = "${buildDir}\\apk\\${newFileNamePrefix}-R.txt"
+        // 可选，设置R.txt文件，通过旧apk文件保持ResId的分配
+    }
+
+加上如上的 tinkerId 内容即可。
+
+Arouter 在 kotlin 中注入的时候会出问题 ，要这样写：
+
+    @Autowired
+    @JvmField
+    var levelId: Int = 0
+
+加上 @JvmField 注解
+
+内存泄露原因之一：
+
+1. 使用了静态的单例对象，里面有一些方法，要传入回调，因为在外部的类内匿名创建回调并传入，单例对象的生命周期比外部的类要长，这样会
+造成内存泄露，需要对传入的对象置空。
+
+
+迁移到 AndroidX 的问题：
+
+1.dagger2报错：e: [kapt] An exception occurred: java.util.NoSuchElementException
+
+解决： https://www.jianshu.com/p/0ddfbb6405c6
+
+2. [TAG] Failed to resolve variable '${animal.sniffer.version}'
+
+解决：直接File->Invalidate Caches / restart,不再报错了。
+
+3. ERROR: [TAG] Failed to resolve variable '${junit.version}'
+
+解决： https://blog.csdn.net/u010937230/article/details/53418923/
+
+4.各种类名导包错误
+
+解决：https://mp.weixin.qq.com/s?__biz=MzIxODM3OTU2Mg==&mid=2247483681&idx=1&sn=28fa424f25e6607c497f5d6f60bf3b19&chksm=97ea2564a09dac72c4c9b5a486e0c8106f45e29611fcd281a2ffc373311fa0b864e65d75f660&mpshare=1&scene=1&srcid=0723nHZjv5sfZ3s0fOIfwLST&sharer_sharetime=1595468793106&sharer_shareid=169a5e5b0e7bd70f8492dff1c028426a&key=bd8ad81032fdfaf2b1c8da1731058354c8f8478914d525508f18db8469657c41ad4e0b0f314cdff89ab3399f53ab93266f42646546b1e975c4ae2a0f028d0815e44d794413577e4901fcb5c6609d79ce&ascene=1&uin=MTA4MzU1NTkwMw%3D%3D&devicetype=Windows+10+x64&version=62090529&lang=zh_CN&exportkey=ARJJ0bTc6ArM79jH82XaxIg%3D&pass_ticket=MprbvGkzaocqJ9poUYOQXev4Rbaf1O6rg%2BGfkaZySo9kaRl74GCLAVZczcdqh8J3
+
+重要： 查看包依赖的方法：
+
+右边gradle -> help -> dependencies ，
+
+    api (rootProject.ext.dependencies["viewpager2"]){
+        exclude group: 'androidx.recyclerview', module: 'recyclerview'
+    }
+
+	去除指定的依赖
+
+	x.x.x(*) ，表示该依赖已经有了，将不再重复依赖
+	x.x.x -> x.x.x 该依赖的版本被箭头所指的版本代替
+	x.x.x -> x.x.x(*) 该依赖的版本被箭头所指的版本代替,并且依赖已经有了，将不再重复依赖
+
+
+问题：android.util.AndroidRuntimeException: Calling startActivity() from outside of an Activity
+
+5. viewpager2 运行时说找不到类，因为 viewpager2 源码里引用到了其他库，但是没找到对应的类，这时候需要升级一下其他库，或统一其他引用到的库的版本，比如：
+
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        def requested = details.requested
+        if (requested.group == 'com.android.support') {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion '28.0.0'
+            }
+        }
+
+        if (requested.group == 'androidx.core') {
+                details.useVersion '1.3.1'
+        }
+    }
+}
+
+Context中有一个startActivity方法，Activity继承自Context，重载了startActivity方法。如果使用 Activity的startActivity方法，不会有任何限制，而如果使用Context的startActivity方法的话，就需要开启一个新 的task，遇到上面那个异常的，都是因为使用了Context的startActivity方法。
+
+解决办法是，加一个flag
+
+intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+1.Arouter 使用的问题： 不同模块下，不要使用相同的一级路径，默认根据模块来加载的，如果某个模块被加载了，第二个模块用了同样的一级路径，并不会再加载，会导致其他模块路径不存在
+
+
+注意： 用到 ButterKnife 时，如果在基类已经处理了回收操作，需要在子类处理完回收操作后，才调用 super.onDestroy()方法，不然控件会找不到.
+
+问题:The given artifact contains a string literal with a package reference 'andro-2020-4-25
+详细:
+
+The given artifact contains a string literal with a package reference
+‘android.support.v4.content’ that cannot be safely rewritten.
+Libraries using reflection such as annotation processors need to be
+updated manually to add support for androidx.
+
+原本
+
+   annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
+1
+换成
+
+implementation 'com.jakewharton:butterknife:10.2.1'
+annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
+
+
+注意: SurfaceView 设置的回调没有走，在 xml 文件里让 SurfaceView 先设置为 gone ，然后在代码里动态设置为 visible ，就会走回调。一定要在设置完所有参数后再设置 visible
+
+
+注意： clipToPadding 可用于 RecyclerView 的边界距离，默认设置一个 padding ，滑动的时候可以控制 padding 是否可以被裁剪掉。
+
+2. 如果手机debug模式安装不了，可以通过 gradle 的 task installDebug 任务安装
+
+fresco 播放动画的问题：
+
+先设置背景图，用 actualImageResource 属性，后面再播放 webp 动画，就会替换掉，不能用 backgound属性
+
+路径动画：：：：：
+
+第一 ： 需要做动画的View 的左下角为坐标原点，右下(第三象限为正)，可以通过 moveTo 将 view 移至指定位置，但是移动的坐标点还是要以
+坐标原点为基准，如果移动过程中做了缩放动画，动画默认以中心点缩放，所以会有偏移，需要对偏移做处理。缩放动画过程中，路径永远不会变，
+但是已经缩放了，所以视觉有偏差
+
+注意： 属性动画设置的时间等参数会复用，
+   mShip.animate().translationX(500.dp).translationY(200.dp).setDuration(1500).setStartDelay(1000).setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator?) {
+                    if (!isShipAnimationFinish) {
+                        isShipAnimationFinish = true
+                        mShip.visibility = View.GONE
+                        // 注意，这里需要重新设置一下延时和时间，不然会复用之前的，1秒延时会重新回调，会出问题
+                        mShip.animate().translationX(0f).translationY(0f).setStartDelay(0).duration = 10
+                        mTitleLayout.visibility = View.VISIBLE
+                        playFromSdCard(mResultMediaPlayer, getLocalResourcePath(currentAction.answerVoice)) {
+                            gameOver()
+                        }
+                    }
+                }
+            })
+
+=====================================================================
+
+字符串模板 xml 配置时 ，%要显示，应该用对%进行转义处理，  <string name="task_percent">%1$s%%</string>
+
+
+异常：
+
+1. 字符串正则匹配异常 java.util.regex.PatternSyntaxException ，正则匹配的时候发现有特殊符号，比如 （，会报错，需要转换处理
+
+2. Toast 异常，
+
+#126303 java.lang.IllegalStateException
+View android.widget.LinearLayout{982e1c8 V.E...... ......ID 0,0-499,109} has already been added to the window manager.
+
+android.view.WindowManagerGlobal.addView(WindowManagerGlobal.java:419)
+
+Kotlin 使用问题：
+
+1. Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target 1.6.
+	Please specify proper '-jvm-target' option
+
+解决： 在 build 文件中 添加
+
+ kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+=====================================================================
+viewpager2 使用问题：
+
+配置了这个：
+
+        (mViewPager.getChildAt(0) as RecyclerView).layoutManager!!.isItemPrefetchEnabled = false
+        (mViewPager.getChildAt(0) as RecyclerView).setItemViewCacheSize(0)
+
+会报如下问题：
+
+java.lang.IllegalStateException: Design assumption violated.
+
+解决方案：  (mViewPager.getChildAt(0) as RecyclerView).setItemViewCacheSize(0) 去掉或变成1
+
+=====================================================================
+
+ 内存分析工具转换错误 ：
+
+ 需要将文件先进行转换：转换命令再AndroidSDK中，可能是在tools文件夹下，也可能是platform-tools文件夹下，名为hprof-conv 命令如下
+
+ hprof-conv a.hprof b.hprof
+[命令]  [目标文件] [转换后的文件路径和名称]
+
+小技巧：一般解析后数据都会包含很大的系统资源信息，如果想去掉这部分，可以在命令中加入 -z 如
+
+hprof-conv -z a.hprof b.hprof
+[命令]  [目标文件] [转换后的文件路径和名称]
+
+比如：  hprof-conv -z F:\memoryanalysis\question\memory-20210122T141417.hprof F:\memoryanalysis\result\memory-20210122T141417.hprof
+
+注意：不能用 git bash ，要用 cmd 打开的界面
+
+=====================================================================
+
+motionLayout 使用记录：
+
+1. scene 文件里面的 Constraint 标签一定要写 layout_width 和 layout_height ，不然控件不可见，即使外面的布局已经写了，
+	margin 属性也是，外面布局写了， scene 文件没写，也不生效，(就算 scene 写了，其实也不生效，要分别四个方向单独写
+	才可以) ，一切以 scene 的配置为准。
+
+2. 如果 scene 里面已经设置了相关的约束，其实外层可以不用再设置了。
+
+3. 触发事件类型是 OnSwipe 时， duration 属性无效
+
+
+=====================================================================
+
+Android系统 6.0以下AudioManager内存泄漏问题
+做视频播放的时候，AudioManager不仅java层代码会调用，播放器底层源码可能也会用到，我们用的的解决办法是重写Activity的getSystemService()方法:
+
+    @Override
+     public Object getSystemService(@NonNull String name) {
+          if (Context.AUDIO_SERVICE.equals(name))
+             return getApplicationContext().getSystemService(name);
+          return super.getSystemService(name);
+      }
+
+使用Retrofit + Kotlin请求接口时,遇到问题,报错日志:
+
+Parameter type must not include a type variable or wildcard: java.util.Map<java.lang.String, ?> (parameter #1)
+
+问题出在参数map的value类型Any.对于java来说,这个value的类型是Object,可以被Retrofit识别,但对于kotlin来说,retrofit会把Any识别成 ?,就报出了错误.
+解决方案：添加注解@JvmSuppressWildcards
+
+    @FormUrlEncoded
+    @POST("api/Common/GetUserClass")
+    @JvmSuppressWildcards
+    fun getUserClass(@FieldMap map: Map<String, Any?>): Observable<String?>
+
+
+Glide 加载图片报错：(原因是网络限制，换个网络或WIFI就行)
+com.bumptech.glide.load.engine.GlideException: Failed to load resource
+There was 1 cause:
+java.io.FileNotFoundException(https://tbxcdnnew.kingsun.cn/test/ai/forever/2020-07-29/7c1b3115cdd642fc903bd46699c4144c.jpg)
+ call GlideException#logRootCauses(String) for more detail
+
+
+kotlin 使用问题：
+
+Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target
+
+	解决方案：
+	    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+ConstraintLayout 使用：
+
+1. 如果想限制Textview 横向动态长度约束，不能超过屏幕，可以加上
+
+app:layout_constrainedWidth="true"
+app:layout_constraintHorizontal_bias="0"
+
+从左边一直增加，增加到限制的宽度
+=====================================================================
+PlayerBase 的 cover 层默认对事件做了处理，自定义的 pointseekbar 滑动会不流畅，需要加上 padding ，增加滑动的范围
+
+动画监听了结束事件，资源回收的时候只处理了 cancel 事件，会立刻回调结束事件，导致闪退，还要
+移除所有的监听器，removeAllListeners()
+
+注意：原来 ijkPlayer默认不支持 https 协议的视频
+
+注意：如果 APP 首界面增加了 android:launchMode="singleTask"启动模式 ，按home键之后退回到桌面，再次点击桌面图标会
+再次重新启动程序
+
+注意： git 地址中如果包含 () ，需要用 "" 包起来，不然会报语法错误
+
+注意： 跑马灯实现代码：
+
+    android:ellipsize="marquee"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:singleLine="true"
+
+		然后，记得在代码中设置 isSelected = true
+
+注意：当 logcat 中不显示日志时，可以通过 adb logcat -v threadtime -> F:/logcat.txt 命令，打印日志到本地，然后分析。
+
+Fresco 日志打印： adb logcat "-v threadtime | grep -iE 'LoggingListener|AbstractDraweeController|BufferedDiskCache'"
+
+问题：No version of NDK matched the requested version 21.0.6113669
+
+解决方案：
+ android {
+    ndkVersion '21.3.6528147'
+    }
+
+问题：	Android 8.0坑之王中王’Only fullscreen opaque activities can request orientation’
+
+解决方案：大概意思就是：只有全屏不透明的活动才能请求定向
+
+google了一下原因是Android高版本加入了屏幕的限制
+解决办法总是有的：
+1.删除AndroidManifest中相应Activity的android:screenOrientation=”portrait”。
+2.把Activity的theme中<item name=”android:windowIsTranslucent”>true</item>设置为false。
+以上两种方法任意一种即可
+
+华为推送集成注意事项：
+
+集成HuaWei推送sdk注意事项：（2020年4月13日依然存在的问题） 无故报错：907135000
+
+在调用SDK的token的时候，报错 错误码 907135000，在文档中让导入agconnect-services.json去读取，把该文件导入到项目中，
+问题：并不能读取到，读取的appid为null，
+解决办法
+所以需要在Mainfest中配置如下代码：
+
+在调用SDK的token的时候，报错 错误码 907135000，在文档中让导入agconnect-services.json去读取，把该文件导入到项目中，
+问题：并不能读取到，读取的appid为null，
+解决办法
+所以需要在Mainfest中配置如下代码：
+
+<meta-data
+            android:name="com.huawei.hms.client.appid"
+            android:value="配置文件里的appid"/>
+        <meta-data
+            android:name="com.huawei.hms.client.cpid"
+            android:value="配置文件里的cp_id"/>
+
+
+Dialog 报错：io.reactivex.exceptions.OnErrorNotImplementedException:View=DecorView@f4b34ea[ReportWebAct] not attached to window manager
+
+在show和dismiss时，要注意activity的生命周期，如果此时activity被销毁，会报错，可以加上 activity.isfinishing
+
+
+跳转微信报错：
+
+Unable to find explicit activity class {com.tencent.mm/com.tencent.mm.ui.LauncherUI}; have you declared this activity in your AndroidManifest.xml?
+
+    public void goToWechat(Context context){
+        if (msgApi!=null&&!msgApi.isWXAppInstalled()) {
+            ToastUtils.showShortToast("请确保已安装微信");
+            return;
+        }
+		// 这样可以打开
+        context.startActivity(context.getPackageManager().getLaunchIntentForPackage("com.tencent.mm"));
+		// 这种方式在一些机型会报错(可能跟微信版本有关)
+//        Intent intent = new Intent(Intent.ACTION_MAIN);
+//        ComponentName cmp = new ComponentName("com.tencent.mm", "com.tencent.mm.ui.LauncherUI");
+//        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        intent.setComponent(cmp);
+//        context.startActivity(intent);
+    }
+
+	androidx.constraintlayout.widget.Group 使用注意事项： xml 中用 invisible ，代码设置也要同时用invisible，如果用gone，会有冲突，可能不显示
+
+
+
+https://blog.csdn.net/yuxikuo_1/article/details/107302871 这是解决github访问不了的方法
+
+记住下面3个网址
+
+github网址查询：https://github.com.ipaddress.com/
+
+github域名查询：https://fastly.net.ipaddress.com/github.global.ssl.fastly.net
+
+github静态资源ip：https://github.com.ipaddress.com/assets-cdn.github.com
+
+这是修改host 的方式：http://www.xitongcheng.com/jiaocheng/win7_article_53429.html
+host路径： C:\Windows\System32\drivers\etc ，刷新dns ipconfig/flushdns
+
+android studio 快捷键
+
+查看类的继承关系结构 ，Ctrl + H
+
+chrome 长截图方法： ctrl + shift + i ，然后 ctrl + shift + p ,然后输入 screen ，然后选对应的截图方式就行
+
+
+
+三星手机 sdcard 位置： mnt - sdcard -linkid
+
+在项目升级为AndroidX之后,可能有人会发现,Glide4.8.0会出现问题,Glide中使用的 android.support.annotation.CheckResult 和android.support.annotation.NonNull这两个注解找不到,这是因为Glide4.8.0还没有完全兼容androidX,不过,还是有解决的办法,需要用户手动添加下面的依赖才行,然后就可以正常使用Glide了,具体的代码在下面
+
+    implementation "com.android.support:support-annotations:28.0.0"
+    annotationProcessor "com.android.support:support-annotations:28.0.0"
+
+
+新项目问题
+
+	config.gradle 和 default.gradle ，如果 default.gradle 引入了 config 文件，无需在 default 里面引用config，只需要在最顶层 build 文件中引入 apply from: "config.gradle"
+
+
+Android studio 问题：
+
+	Failed to open zip file. Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)
+
+方案：删除对应的gradle压缩包，重新下载gradle版本进行重新加载
+
+问题:
+build\intermediates\signing_config\aiDebug\out\signing-config.json (拒绝访问。)
+方案：删除原来的app/build（需要权限）
+
+问题：android studio修改git 密码
+方案：Setting 里面 -System-Setting- password 选择不保存，下次重新拉代码的时候就会重新输入帐号密码了
+
+android studio 4.2 问题：
+ Unable to load class 'javax.xml.bind.JAXBException'.Unable to load class 'javax.xml.bind.JAXBException'.  This is an unexpected error
+
+
+方案：
+
+Json 相关问题：
+
+Failure(com.google.gson.JsonSyntaxException: java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING at line 1 column 32 path $.Data)
+
+方案： 不能直接写 类似于这种  val GradeData: List<GradeEntity>?, 只能随便写一个对象，然后对象里面再写这个列表
+
+
+如果想在字符串引用中使用双引号，可以用 \ 进行转义 ，比如：
+ <string name="str_txt_app_guid_user">下次可以唤醒我\n说: \“我要听写\”</string>
+
+
+问题： 在列表中使用shape制定圆角矩形背景，滑动列表，发现当shape滑动到列表顶部边界处出现明显抖动，且滑过之后shape在顶部残留了一条等宽同颜色的细线。
+
+方案： 是shape渲染有问题，使用layerlist替代，避免单独使用shape绘制圆角背景，使用solid叠加覆盖，而不是直接使用stoke。
+
+SweepGradient 是从0度开始绘制的，设置的颜色值也是从0度开始，转一圈
+
+
+打包时报错，Android Studio 版本过高导致：
+
+Direct local .aar file dependencies are not supported when building an AAR. The resulting AAR would be broken because the classes and Android
+resources from any local .aar file dependencies would not be packaged in the resulting AAR. Previous versions of the Android Gradle Plugin produce
+broken AARs in this case too (despite not throwing this error). The following direct local .aar file dependencies of the :lamp project caused this
+error: G:\companyProjects\TencentLamp\lamp\libs\assistant-image.aar, G:\companyProjects\TencentLamp\lamp\libs\mutualexclusion_1.0.210416_101_release.aar
+
+方案：在你工程根目录下新建一个文件夹YouLib，将你的aar文件放入，然后在该目录下新建一个build.gradle文件
+
+
+在settings.gradle 导入该工程
+include ':YouLib'
+
+在你需要依赖的工程里面的build.gradle中增加依赖
+implementation project(path: ':YouLib') // 这里需要注意的是，YouLib是你aar库所在文件夹
+
+当然如果你有很多aar库，那么你需要在根目录创建一个LocalRepo目录，然后将你不同的aar库放在不同文件夹下。在setting.gradle分别导入
+
+
+SafeHostnameVerifier 类要在 Https的IP下才能进断点，http下会过滤掉
+okHttpClientBuilder = new OkHttpClient.Builder()
+                    .hostnameVerifier(new SafeHostnameVerifier())
+
+魅族手机，如果不打印日志，则需要主动打开，路径为：辅助-开发者-性能优化-高级日志输出
+
+有时候 ，我们在调试APK，直接Build是可以正常生成，没有报错，但是当我们将自己的签名文件加上去，就会报错。一般情况下，我们可以在build.gradle中的android{}里面添加一个东西
+
+lintOptions {
+    checkReleaseBuilds false
+    abortOnError false
+}
+
+viewbinding 开启失败
+
+Could not find method viewBinding() for arguments [build_4p048sjyf15d8ff0yc9mqlv2k$_run_closure1$_closure14@2eb9c016] on object of type com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+
+原因：gradle 版本过低，要达到3.6.1
+classpath 'com.android.tools.build:gradle:3.6.1'
+
+
+ScrollView 中想要内部居中，可以加上这句属性
+android:fillViewport="true"
+
+魅族手机：应用安装不了
+
+安卓 Installation via USB is disabled
+
+解决办法：魅族打开步骤： 打开手机管家----权限管理----USB安装管理----受监控的应用----允许
+
+coil 图片加载库：
+
+报错 ：java.lang.IllegalStateException: Not in applications main thread
+
+解决办法：
+
+
+Android Studio中使用properties配置文件出现中文乱码问题:
+
+开发工具是是Android Studio：File > Settings > Editor > File Encodings 里Project Encoding（如果右下角<Transparent native-to-ascii conversion >为打对勾，则需要勾选上）
+
+
+重要问题： Gradle failed to restore: Unable to find method 'org.gradle.api.file.ProjectLayout.directoryProperty
+
+方案： And change the Android Gradle Plugin Version from 3.3.1 to 4.0.1 and now project loaded fine. Not sure why Android Studio v4 is not backward compatible with Gradle version 3.
+
+问题： Could not identify launch activity: Default Activity not found Error while Launching activity
+
+解决方案： 在 启动配置项指定相关的启动页面
+
+
+android 系统文件夹读写权限更改： 命令：adb shell 回车，然后 su 进入超级管理权限，然后，mount -o remount -rw  / 回车，ls -l 查看各文件夹权限
+
+
+databindg 使用 fresco 时，xml 文件中使用 app:acturlxxx 属性时，编译不了，要算定义 databindg 方法来设置
+
+使用 objectbox 插件时，一定要在 kotlin 的插件配置后面，不然会报错
+
+查看应用签名信息： keytool -list -v -keystore G:\StudioProjects\AiAndroidApp\AiCourse\keystore\AiRelease.jks
+
+
+vscode : open in browser 不生效，先换为 ie ，再设置为 chrome ，就可以了
+
+databindg 识别不了 BR 文件，用不了，解决方式：可能是app 模块下没开始 databindg 功能
+databindg 报插件错误，可以是编译版本问题 30不行，29可以
+
+androidstudio 输出中文乱码，可以通过 help-edit vm options ，添加 -Dfile.encoding=UTF-8 ，再重启
+
+
+问题： kotlin使用retrofit请求出现Parameter type must not include a type variable or wildcard，
+方案： 添加注解@JvmSuppressWildcards，    suspend fun getEBookMsg(@Body map: Map<String,@JvmSuppressWildcards Any>): HttpResponse<List<CatalogDataBean>?>
+
+Android Studio出现Caused by: org.gradle.api.internal.plugins.PluginApplicationException: Failed to apply plugin [id ‘com.android.internal.application’]
+
+解决： 在 gradle.properties 文件中添加 android.overridePathCheck=true
+
+
+问题： Android Studio解决Java程序输出中文乱码 ，
+解决：手动在 build.gradle中添加代码  tasks.withType(JavaCompile) { options.encoding = "UTF-8" }
+
+使用 hilt 报错：
+
+问题： Expected @AndroidEntryPoint to have a value. Did you forget to apply the Gradle Plugin?
+
+解决：        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation":
+                                     "$projectDir/schemas".toString()]
+            }
+        }
+
+		将 arguments = 改为 arguments +=即可
+
+第二种办法：可能 Kotlin 升级到1.5.21 就可以
+
+项目适配用的是 AutoSize ，但是单位和的是副单位 mm，在 studio 预览布局不正常，需要自定义模拟器，重点是模拟器的尺寸大小设置，
+如果项目配置的是 667 375 ，则模拟器也必须设置为这个尺寸，大小为宽高分别平方再相加，然后再开方，最后除以 25.4 ，保留两位数的数值。
+预览的时候选中我们自定义的模拟器即可。
+
+android studio 登录github账户报错 invalid authentication data connection reset
+
+解决办法： 在添加github账户这里一定要在 Server 里面加 https://
+
+codeglance 插件不起作用 ，可以在 setting 里面 搜索 codeglance 把 disable 选项的勾去掉
+
+android studio 运行 kotlin main 方法报错 ，将编译版本降级，写成29及以下即可，31不行
+
+Access to ‘viewBinding’ exceeds its access rights ，写法过时了 ，应该是这样写： viewBinding true
+
+问题： Configurations for activity_main.xml must agree on the root element's ID.
+解决：不同layout布局下的所有的id都要相同，而且不能丢失
+
+个人node 测试地址，网络请求问题：
+
+java.net.UnknownServiceException: CLEARTEXT communication to 127.0.0.1 not permitted by network security policy
+
+在 application 标签中增加 android:usesCleartextTraffic="true" ，可以不加这行配置
+
+2.在 res 下新建一个 xml 目录，并新建一个 network_security_config.xml 文件，文件内容如下：
+
+3.在 AndroidManifest.xml 的 application 标签中新加：
+
+android:networkSecurityConfig="@xml/network_security_config"
+
+
+问题：java.net.ConnectException: Failed to connect to /127.0.0.1:3007
+注意：要用ip地址，不能用localhost地址 ，电脑打开cmd ，用ipconfig 查看地址
+
+
+00%=FF（不透明）    5%=F2    10%=E5    15%=D8    20%=CC    25%=BF    30%=B2    35%=A5    40%=99    45%=8c    50%=7F   55%=72
+60%=66    65%=59    70%=4c    75%=3F    80%=33    85%=21    90%=19    95%=0c    100%=00（全透明）
+
+问题：Android Studio出现Caused by: org.gradle.api.internal.plugins.PluginApplicationException: Failed to apply plugin [id ‘com.android.internal.application’]
+————————————————
+解决：在项目中的gradle.properties文件中添加语句：android.overridePathCheck=true
+
+
+APP崩溃日志分为双端：Android和iOS。
+安卓：
+方法1：将安卓手机用数据线连接电脑，使用adb命令获取崩溃日志
+adb logcat group apk包名
+将日志保存到本地指定位置
+adb logcat -v time >D:\log.txt
+将错误日志保存到本地指定位置
+adb logcat -v time *:E >D:\log.txt
+方法2：使用腾讯bugly查看，可以根据UID、机型、出现崩溃的时间筛选日志
+方法3：通过Xshell(window系统)工具，使用Linux命令
+tail -f log.txt | grep "关键字"
+iOS：
+方法1：电脑安装爱思助手，将iOS手机用数据线连接电脑，用爱思助手-“工具箱”-“实时日志”，来查看设备软件闪退、运行异常等问题
+方法2：使用腾讯bugly查看，可以根据UID、机型、出现崩溃的时间筛选日志（同安卓）
+方法3：通过Xshell(window系统)工具，使用Linux命令（同安卓）
+tail -f log.txt | grep "关键字"
+
+查看手机终端信息：
+
+adb shell
+
+cat /proc/cpuinfo
+
+
+ijkplayer 必须5.0以上使用，可以使用这个配置忽略版本
+<uses-sdk tools:overrideLibrary="tv.danmaku.ijk.media.player_arm64"/>
+
+npm 官方源： http://www.npmjs.org/
+
+查看官方源方法： npm config get registry
+切换源： npm config set registry http://registry.npm.taobao.org/
+
+
+apply plugin: "kotlin-parcelize"  该插件可以让 kotlin 使用 parcelize 注解， kotlin-android-extensions 已经废弃
+
+C:\Users\fanda.zeng\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlin\kotlin-compiler-embeddable\1.6.21
+
+注意: recyclerview 的 item 布局要加上 android:focusable="true" ，父布局要加上  android:descendantFocusability="afterDescendants"，才能让 item 获取到焦点，然后才能滚动
+
+github access token  kingsun 90days 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
+
+
+Android studio 打开新项目的窗口策略，可以通过 Settings - Appearance - system settings 来设置
+
+
+问题 ： Dialog findViewById 空指针，但是在 show 方法之后调用就可以
+
+
+
+
+

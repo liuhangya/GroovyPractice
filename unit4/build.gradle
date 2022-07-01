@@ -1,0 +1,41 @@
+plugins {
+    id 'java-library'
+}
+
+// 配置 java 相关内容
+java {
+    // 源代码兼容性配置，目标是 1.8
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+// 默认调用的都是 Project 相关的属性和方法
+description = '设置项目的描述'
+//println " $name 项目描述为：$description"
+
+// 可显式调用 project ，比如
+project.setDescription('显式调用项目的描述')
+//println " $project.name 项目描述为：$project.description"
+
+// 自定义属性
+// 方式一
+project.ext.myProp = 'myValue'  // 只在初始声明扩展属性时需要用到 ext 命名空间，后续的访问不再需要
+// 方式二
+ext {
+    otherProp = 123
+}
+// 通过 ext 访问
+ext.otherProp = 567
+// 通过 project 访问或直接访问都可以
+//println("自定义属性： $project.myProp 和 $otherProp")
+// 读取根目录下的 gradle.properties （项目唯一）文件内容，key 是字符串，value 也是字符串，value 可以不带 ''，直接写内容就行
+//println("gradle.properties 自定义属性： ${project['org.gradle.java.home']}")
+//println("gradle.properties 自定义属性： $customProp")
+//println("gradle.properties 自定义属性： ${otherCustomProp.getClass().getCanonicalName()}")
+
+dependencies {
+    // 单元测试依赖库
+    testCompileOnly('androidx.test.ext:junit:1.1.3')
+}
+
+
